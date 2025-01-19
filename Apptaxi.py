@@ -54,10 +54,12 @@ GREEN_TRIP_DATA_FILE = "green_tripdata_2024-10_reducido.csv"
 
 # Configurar credenciales desde secretos
 if "GOOGLE_APPLICATION_CREDENTIALS_JSON" in st.secrets:
-    credentials_path = "Clavejero.json"
+    credentials_path = "/tmp/Clavejero.json"  # Ruta temporal en Streamlit Cloud
     with open(credentials_path, "w") as f:
         f.write(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
+else:
+    st.error("No se encontraron las credenciales en los secretos de Streamlit.")
 
 # Función para cargar datos desde un bucket de Google Cloud
 @st.cache_data
@@ -85,7 +87,7 @@ def load_green_trip_data():
     file_path = f"{TRANSFORMED_PATH}{GREEN_TRIP_DATA_FILE}"
     return load_data_from_bucket(BUCKET_NAME, file_path)
 
-# Usar los datos en la aplicación Streamlit
+# Interfaz de usuario en Streamlit
 st.title("Datos desde Google Cloud Storage")
 
 # Cargar y mostrar Electric Car Data

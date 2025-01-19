@@ -4,126 +4,77 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
-import numpy as np
-from google.cloud import storage
+from google.cloud import bigquery
 import os
+
 # Configuración de la página con el logo como ícono
 st.set_page_config(
     page_title="TaxiCom2.0", 
     page_icon="Logo.png",  
     layout="wide"
 )
-# Colores de la paleta
-PRIMARY_COLOR = "#008080"  # Verde azulado del logo
-SECONDARY_COLOR = "#444444"  # Gris oscuro
-BACKGROUND_COLOR = "#F4F4F4"  # Fondo claro
 
-# Estilo general
-st.markdown(
-    f"""
-    <style>
-        .css-18e3th9 {{
-            background-color: {BACKGROUND_COLOR};
-        }}
-        .stButton > button {{
-            background-color: {PRIMARY_COLOR};
-            color: white;
-            border-radius: 5px;
-        }}
-        h1 {{
-            color: {PRIMARY_COLOR};
-        }}
-        .stSidebar {{
-            background-color: {SECONDARY_COLOR};
-            color: white;
-        }}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# Configurar las credenciales desde los secretos
+with open("temp_credentials.json", "w") as f:
+    f.write(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "temp_credentials.json"
 
-# Título y logo
-st.sidebar.image("Logo.png", use_container_width=True)
-st.sidebar.title("TaxiCom2.0")
-
-# Configuración para Google Cloud
-BUCKET_NAME = "prueba2frank"
-TRANSFORMED_PATH = "transformed/"
-ELECTRIC_CAR_DATA_FILE = "ElectricCarData.csv"
-GREEN_TRIP_DATA_FILE = "green_tripdata_2024-10_reducido.csv"
-
-# Configurar credenciales desde secretos
-if "GOOGLE_APPLICATION_CREDENTIALS_JSON" in st.secrets:
-    credentials_path = "/tmp/Clavejero.json"  # Ruta temporal en Streamlit Cloud
-    with open(credentials_path, "w") as f:
-        f.write(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
-else:
-    st.error("No se encontraron las credenciales en los secretos de Streamlit.")
-
-# Función para cargar datos desde un bucket de Google Cloud
+# Función para cargar datos desde BigQuery
 @st.cache_data
-def load_data_from_bucket(bucket_name, file_path):
-    try:
-        # Crear cliente de Google Cloud Storage
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(bucket_name)
-        blob = bucket.blob(file_path)
-        data = blob.download_as_text()
-        # Leer el contenido como DataFrame
-        return pd.read_csv(pd.compat.StringIO(data))
-    except Exception as e:
-        st.error(f"Error al cargar datos desde el bucket: {e}")
-        return pd.DataFrame()
+def load_data_from_bigquery(query):
+    client = bigquery.Client()
+    query_job = client.query(query)
+    return query_job.to_dataframe()
 
-# Lógica para cargar los datasets
-@st.cache_data
-def load_electric_car_data():
-    file_path = f"{TRANSFORMED_PATH}{ELECTRIC_CAR_DATA_FILE}"
-    return load_data_from_bucket(BUCKET_NAME, file_path)
+# Consultas para cargar datos desde BigQuery
+electric_car_data_query = """
+SELECT * 
+FROM `My Project 39453.g2.electriccardata`
+"""
 
-@st.cache_data
-def load_green_trip_data():
-    file_path = f"{TRANSFORMED_PATH}{GREEN_TRIP_DATA_FILE}"
-    return load_data_from_bucket(BUCKET_NAME, file_path)
+taxi_trip_data_query = """
+SELECT * 
+FROM `My Project 39453.g2.green_tripdata_2024_10_reducido`
+"""
 
-# Interfaz de usuario en Streamlit
-st.title("Datos desde Google Cloud Storage")
-
-# Cargar y mostrar Electric Car Data
-st.subheader("Electric Car Data")
-electric_car_data = load_electric_car_data()
-if not electric_car_data.empty:
-    st.dataframe(electric_car_data)
-else:
-    st.warning("No se pudieron cargar los datos de Electric Car Data.")
-
-# Cargar y mostrar Green Trip Data
-st.subheader("Green Trip Data")
-green_trip_data = load_green_trip_data()
-if not green_trip_data.empty:
-    st.dataframe(green_trip_data)
-else:
-    st.warning("No se pudieron cargar los datos de Green Trip Data.")
+# Cargar los datos
+try:
+    data = load_data_from_bigquery(electric_car_data_query)
+    taxi_trip_data = load_data_from_bigquery(taxi_trip_data_query)
+except Exception as e:
+    st.error(f"Error cargando datos desde BigQuery: {e}")
+    st.stop()
 
 # Opciones del menú
 menu_option = st.sidebar.radio(
     "Seleccione una sección:",
     ("Comparación Marcas y Modelos", "Recomendaciones", "Predicción amortización")
 )
-# Cargar datos
+
+# Función para cargar datos desde BigQuery
 @st.cache_data
-def load_data():
-    file_path = 'ElectricCarData.csv'
-    return pd.read_csv(file_path)
+def load_data_from_bigquery(query):
+    client = bigquery.Client()
+    query_job = client.query(query)
+    return query_job.to_dataframe()
 
-data = load_data()
+# Cargar datos de los dos archivos desde BigQuery
+electric_car_data_query = """
+SELECT * 
+FROM `your_project_id.your_dataset.ElectricCarData`
+"""
+taxi_trip_data_query = """
+SELECT * 
+FROM `your_project_id.your_dataset.GreenTripData`
+"""
 
-def load_taxi_data():
-    taxi_trip_path = 'green_tripdata_2024-10_reducido.csv'
-    return pd.read_csv(taxi_trip_path)
-
-taxi_trip_data = load_taxi_data()
+# Cargar los datos
+try:
+    data = load_data_from_bigquery(electric_car_data_query)
+    taxi_trip_data = load_data_from_bigquery(taxi_trip_data_query)
+except Exception as e:
+    st.error(f"Error cargando datos desde BigQuery: {e}")
+    st.stop()
 
 if menu_option == "Comparación Marcas y Modelos":
     st.header("Comparación Marcas y Modelos")
@@ -236,7 +187,7 @@ elif menu_option == "Predicción amortización":
     selected_car_data = data[(data["brand"] == selected_brand) & (data["model"] == selected_model)].iloc[0]
 
     # Mostrar información del modelo seleccionado
-    st.write(f"*Precio del vehículo (USD):* {selected_car_data['priceusd']:.2f}")
+    st.write(f"**Precio del vehículo (USD):** {selected_car_data['priceusd']:.2f}")
 
     # Preparar datos para el modelo de predicción
     taxi_trip_data_filtered = taxi_trip_data[["total_amount"]].dropna()
@@ -257,7 +208,7 @@ elif menu_option == "Predicción amortización":
 
     # Ajustar la ganancia neta considerando el 65%
     net_daily_revenue = daily_revenue * 0.18
-    st.write(f"*Ganancia neta promedio diaria estimada (USD):* {net_daily_revenue:.2f}")
+    st.write(f"**Ganancia neta promedio diaria estimada (USD):** {net_daily_revenue:.2f}")
 
     # Predicción del tiempo de amortización
     if st.button("Predecir Amortización"):
@@ -269,6 +220,6 @@ elif menu_option == "Predicción amortización":
         months = int(months_to_amortize % 12)
 
         if years > 0:
-            st.success(f"El vehículo se amortizará en aproximadamente *{years} años y {months} meses*.")
+            st.success(f"El vehículo se amortizará en aproximadamente **{years} años y {months} meses**.")
         else:
-            st.success(f"El vehículo se amortizará en aproximadamente *{months} meses*.")
+            st.success(f"El vehículo se amortizará en aproximadamente **{months} meses**.")

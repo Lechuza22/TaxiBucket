@@ -52,14 +52,23 @@ TRANSFORMED_PATH = "transformed/"
 ELECTRIC_CAR_DATA_FILE = "ElectricCarData.csv"
 GREEN_TRIP_DATA_FILE = "green_tripdata_2024-10_reducido.csv"
 
+# Configurar credenciales desde secretos
+if "GOOGLE_APPLICATION_CREDENTIALS_JSON" in st.secrets:
+    credentials_path = "Clavejero.json"
+    with open(credentials_path, "w") as f:
+        f.write(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
+
 # Función para cargar datos desde un bucket de Google Cloud
 @st.cache_data
 def load_data_from_bucket(bucket_name, file_path):
     try:
+        # Crear cliente de Google Cloud Storage
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob(file_path)
         data = blob.download_as_text()
+        # Leer el contenido como DataFrame
         return pd.read_csv(pd.compat.StringIO(data))
     except Exception as e:
         st.error(f"Error al cargar datos desde el bucket: {e}")
@@ -68,19 +77,32 @@ def load_data_from_bucket(bucket_name, file_path):
 # Lógica para cargar los datasets
 @st.cache_data
 def load_electric_car_data():
-    return load_data_from_bucket(BUCKET_NAME, f"{TRANSFORMED_PATH}{ELECTRIC_CAR_DATA_FILE}")
+    file_path = f"{TRANSFORMED_PATH}{ELECTRIC_CAR_DATA_FILE}"
+    return load_data_from_bucket(BUCKET_NAME, file_path)
 
 @st.cache_data
 def load_green_trip_data():
-    return load_data_from_bucket(BUCKET_NAME, f"{TRANSFORMED_PATH}{GREEN_TRIP_DATA_FILE}")
+    file_path = f"{TRANSFORMED_PATH}{GREEN_TRIP_DATA_FILE}"
+    return load_data_from_bucket(BUCKET_NAME, file_path)
 
-# Cargar datasets sin advertencia de credenciales
-try:
-    data = load_electric_car_data()
-    taxi_trip_data = load_green_trip_data()
-except Exception as e:
-    st.error(f"Error al cargar los datos: {e}")
-    data, taxi_trip_data = pd.DataFrame(), pd.DataFrame()
+# Usar los datos en la aplicación Streamlit
+st.title("Datos desde Google Cloud Storage")
+
+# Cargar y mostrar Electric Car Data
+st.subheader("Electric Car Data")
+electric_car_data = load_electric_car_data()
+if not electric_car_data.empty:
+    st.dataframe(electric_car_data)
+else:
+    st.warning("No se pudieron cargar los datos de Electric Car Data.")
+
+# Cargar y mostrar Green Trip Data
+st.subheader("Green Trip Data")
+green_trip_data = load_green_trip_data()
+if not green_trip_data.empty:
+    st.dataframe(green_trip_data)
+else:
+    st.warning("No se pudieron cargar los datos de Green Trip Data.")
 
 # Opciones del menú
 menu_option = st.sidebar.radio(

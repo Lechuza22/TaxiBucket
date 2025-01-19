@@ -51,35 +51,11 @@ menu_option = st.sidebar.radio(
     ("Comparación Marcas y Modelos", "Recomendaciones", "Predicción amortización")
 )
 
-# Función para cargar datos desde BigQuery
-@st.cache_data
-def load_data_from_bigquery(query):
-    client = bigquery.Client()
-    query_job = client.query(query)
-    return query_job.to_dataframe()
-
-# Cargar datos de los dos archivos desde BigQuery
-electric_car_data_query = """
-SELECT * 
-FROM `your_project_id.your_dataset.ElectricCarData`
-"""
-taxi_trip_data_query = """
-SELECT * 
-FROM `your_project_id.your_dataset.GreenTripData`
-"""
-
-# Cargar los datos
-try:
-    data = load_data_from_bigquery(electric_car_data_query)
-    taxi_trip_data = load_data_from_bigquery(taxi_trip_data_query)
-except Exception as e:
-    st.error(f"Error cargando datos desde BigQuery: {e}")
-    st.stop()
-
 if menu_option == "Comparación Marcas y Modelos":
     st.header("Comparación Marcas y Modelos")
-    st.subheader ("Marcas(Brands) y modelos")
-    st.text ("Para comparar primero selecciona las marcas y modelos, luego selecciona las variables que quieras incluir en la comparación")
+    st.subheader("Marcas (Brands) y modelos")
+    st.text("Para comparar primero selecciona las marcas y modelos, luego selecciona las variables que quieras incluir en la comparación")
+
     # Selección de marcas para comparación
     brands = data["brand"].unique()
     col1, col2 = st.columns(2)
@@ -95,7 +71,7 @@ if menu_option == "Comparación Marcas y Modelos":
 
     # Selección de modelo dentro de cada marca
     col1, col2 = st.columns(2)
-    
+
     with col1:
         model1 = st.selectbox("Seleccione el modelo de la primera marca", models_brand1["model"].unique(), key="model1")
     with col2:
@@ -125,17 +101,17 @@ if menu_option == "Comparación Marcas y Modelos":
         st.subheader("Gráficos comparativos por variable")
         for variable in selected_variables:
             fig, ax = plt.subplots()
-    
+
             # Obtener valores para la variable seleccionada
             value1 = data_model1[variable].values[0]
             value2 = data_model2[variable].values[0]
-    
+
             # Crear gráfico de barras para la variable actual
             ax.bar([model1, model2], [value1, value2], color=["#107D74", "#02163F"])
             ax.set_title(f"Comparación de {variable.capitalize()}")
             ax.set_ylabel(variable.capitalize())
             ax.set_xlabel("Modelos")
-    
+
             # Mostrar el gráfico
             st.pyplot(fig)
 

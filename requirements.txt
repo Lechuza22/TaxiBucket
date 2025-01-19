@@ -3,5 +3,4 @@ pandas
 matplotlib
 scikit-learn
 numpy
-google-cloud-storage
 google-cloud-bigquery

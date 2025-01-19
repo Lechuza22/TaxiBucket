@@ -51,19 +51,7 @@ menu_option = st.sidebar.radio(
     ("Comparación Marcas y Modelos", "Recomendaciones", "Predicción amortización")
 )
 
-# Cargar datos
-@st.cache_data
-def load_data():
-    file_path = 'ElectricCarData.csv'
-    return pd.read_csv(file_path)
 
-data = load_data()
-
-def load_taxi_data():
-    taxi_trip_path = 'green_tripdata_2024-10_reducido.csv'
-    return pd.read_csv(taxi_trip_path)
-
-taxi_trip_data = load_taxi_data()
 
 if menu_option == "Comparación Marcas y Modelos":
     st.header("Comparación Marcas y Modelos")

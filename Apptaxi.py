@@ -64,10 +64,8 @@ gdown.download(file1_url, file1_output, quiet=False)
 gdown.download(file2_url, file2_output, quiet=False)
 
 # Carga de los archivos CSV en DataFrames de pandas
-
-
-data = pd.read_csv(file1_url)
-taxi_trip_data = pd.read_csv(file2_url)
+data = pd.read_csv(file1_output)
+taxi_trip_data = pd.read_csv(file2_output)
 
 # menues
 if menu_option == "Comparación Marcas y Modelos":

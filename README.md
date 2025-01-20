@@ -1,4 +1,4 @@
-# Reademe 
+# Readme 
 La aplicación "TaxiCom2.0" está diseñada para ayudar a los propietarios de negocios de taxis a tomar decisiones informadas al comparar vehículos eléctricos, identificar recomendaciones basadas en características clave, estimar tiempos de amortización, y categorizar autos por su valor. A continuación, se realiza un análisis detallado de cada funcionalidad y cómo se relaciona con el negocio de taxis.
 
 ## 1. Comparación de Marcas y Modelos

@@ -147,7 +147,7 @@ elif menu_option == "Recomendaciones":
 
     if st.button("Recomendación"):
         if selected_variables:
-            model_data = data[(data["brand"] == selected_brand) & (data["model"] == selected_model)]
+            # Filtrar los datos por las variables seleccionadas
             feature_data = data[selected_variables]
 
             # Crear y entrenar el modelo DBSCAN
@@ -161,9 +161,17 @@ elif menu_option == "Recomendaciones":
             # Filtrar modelos del mismo clúster
             recommended_models = data[data["cluster"] == selected_cluster]
 
-            # Mostrar resultados
-            st.subheader("Modelos recomendados")
-            st.write(recommended_models[["brand", "model"] + selected_variables])
+            # Calcular la distancia entre los modelos en el clúster y el modelo seleccionado
+            selected_features = recommended_models[selected_variables]
+            selected_model_features = selected_features.loc[data["model"] == selected_model].values[0]
+            recommended_models["distance"] = np.linalg.norm(selected_features - selected_model_features, axis=1)
+
+            # Seleccionar los 5 modelos más cercanos al modelo seleccionado
+            top_5_models = recommended_models.nsmallest(5, "distance")
+
+            # Mostrar los resultados
+            st.subheader("Top 5 modelos recomendados")
+            st.write(top_5_models[["brand", "model"] + selected_variables])
         else:
             st.warning("Por favor, seleccione al menos una variable para realizar la recomendación.")
 

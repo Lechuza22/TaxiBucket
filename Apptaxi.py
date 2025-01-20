@@ -13,34 +13,6 @@ st.set_page_config(
     page_icon="Logo.png",  
     layout="wide"
 )
-# Colores de la paleta
-PRIMARY_COLOR = "#008080"  # Verde azulado del logo
-SECONDARY_COLOR = "#444444"  # Gris oscuro
-BACKGROUND_COLOR = "#F4F4F4"  # Fondo claro
-
-# Estilo general
-st.markdown(
-    f"""
-    <style>
-        .css-18e3th9 {{
-            background-color: {BACKGROUND_COLOR};
-        }}
-        .stButton > button {{
-            background-color: {PRIMARY_COLOR};
-            color: white;
-            border-radius: 5px;
-        }}
-        h1 {{
-            color: {PRIMARY_COLOR};
-        }}
-        .stSidebar {{
-            background-color: {SECONDARY_COLOR};
-            color: white;
-        }}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 # Título y logo
 st.sidebar.image("Logo.png", use_container_width=True)

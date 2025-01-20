@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.cluster import DBSCAN
+from sklearn.cluster import DBSCAN, KMeans
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 import numpy as np
@@ -21,7 +21,7 @@ st.sidebar.title("TaxiCom2.0")
 # Opciones del menú
 menu_option = st.sidebar.radio(
     "Seleccione una sección:",
-    ("Comparación Marcas y Modelos", "Recomendaciones", "Predicción amortización")
+    ("Comparación Marcas y Modelos", "Recomendaciones", "Predicción amortización", "Categoría de valores")
 )
 
 # Cargar datos
@@ -196,3 +196,33 @@ elif menu_option == "Predicción amortización":
             st.success(f"El vehículo se amortizará en aproximadamente **{years} años y {months} meses**.")
         else:
             st.success(f"El vehículo se amortizará en aproximadamente **{months} meses**.")
+elif menu_option == "Categoría de valores":
+    st.header("Categoría de valores")
+    st.text("Ahora podrás agrupar los autos en tres categorías basadas en su precio (USD): Alto, Medio y Bajo.")
+
+    # Número de clusters
+    num_clusters = 3
+
+    # Entrenar modelo KMeans
+    price_data = data[["priceusd"]].dropna()
+    kmeans = KMeans(n_clusters=num_clusters, random_state=42)
+    data["price_category"] = kmeans.fit_predict(price_data)
+
+    # Asignar nombres a las categorías
+    category_map = {0: "Bajo", 1: "Medio", 2: "Alto"}
+    data["price_category"] = data["price_category"].map(category_map)
+
+    # Barra de selección para categoría
+    selected_category = st.selectbox(
+        "Seleccione una categoría de precio:",
+        ("Bajo", "Medio", "Alto")
+    )
+    # Filtrar datos por la categoría seleccionada
+    filtered_data = data[data["price_category"] == selected_category]
+
+    # Ordenar los datos de mayor a menor precio
+    filtered_data = filtered_data.sort_values(by="priceusd", ascending=False)
+
+    # Mostrar resultados
+    st.subheader(f"Autos en la categoría: {selected_category}")
+    st.write(filtered_data[["brand", "model", "priceusd", "price_category"]])

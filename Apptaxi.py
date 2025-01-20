@@ -1,10 +1,10 @@
-import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 import numpy as np
+import gdown
 
 # Configuración de la página con el logo como ícono
 st.set_page_config(
@@ -51,8 +51,25 @@ menu_option = st.sidebar.radio(
     ("Comparación Marcas y Modelos", "Recomendaciones", "Predicción amortización")
 )
 
+# Cargar datos
+# Enlaces compartidos de Google Drive
+file1_url = "https://drive.google.com/uc?id=1rVa38KLbX33LMjD8F_4NG1iWyy6XaJve"
+file2_url = "https://drive.google.com/uc?id=1tp4rREStv91P7M0s_aRvju7Q0JPMSAEO"
+
+# Descarga de los archivos CSV
+file1_output = "archivo1.csv"
+file2_output = "archivo2.csv"
+
+gdown.download(file1_url, file1_output, quiet=False)
+gdown.download(file2_url, file2_output, quiet=False)
+
+# Carga de los archivos CSV en DataFrames de pandas
 
 
+data = pd.read_csv(file1_url)
+taxi_trip_data = pd.read_csv(file2_url)
+
+# menues
 if menu_option == "Comparación Marcas y Modelos":
     st.header("Comparación Marcas y Modelos")
     st.subheader ("Marcas(Brands) y modelos")
